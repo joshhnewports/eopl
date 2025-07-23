@@ -25,3 +25,29 @@
         (if (eqv? (car los) s)
             (remove s (cdr los))
             (cons (car los) (remove s (cdr los)))))))
+
+;; 1.12
+
+(define subst
+  (lambda (new old slist)
+    (if (null? slist)
+        '()
+        (cons (if (symbol? (car slist))
+                  (if (eqv? (car slist) old)
+                      new
+                      (car slist))
+                  (subst new old (car slist)))
+              (subst new old (cdr slist))))))
+
+;; 1.13
+(define subst
+  (lambda (new old slist)
+    (map (lambda (sexp)
+           (subst-in-s-exp new old sexp))
+         slist)))
+
+(define subst-in-s-exp
+  (lambda (new old sexp)
+    (if (symbol? sexp)
+        (if (eqv? sexp old) new sexp)
+        (subst new old sexp))))
