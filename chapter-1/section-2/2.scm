@@ -1,5 +1,6 @@
 #lang eopl
 
+;; 1.7
 (define informative-report-list-too-short
   (lambda (lst n)
     (eopl:error 'nth-element
@@ -18,6 +19,7 @@
                 (iter (cdr l) (- m 1))))))
     (iter lst n)))
 
+;; 1.9
 (define remove
   (lambda (s los)
     (if (null? los)
@@ -27,7 +29,6 @@
             (cons (car los) (remove s (cdr los)))))))
 
 ;; 1.12
-
 (define subst
   (lambda (new old slist)
     (if (null? slist)
