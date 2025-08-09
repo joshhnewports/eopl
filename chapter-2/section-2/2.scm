@@ -165,3 +165,88 @@
   (lambda (vars vals env)
     (cons (cons vars vals) ; ((var ... var) val ... val)
           env)))
+
+;; 2.12
+;; Stack = Var x Stack -> Stack
+(define empty-stack
+  (lambda ()
+    (lambda (observer)
+      (if (eqv? observer 'empty?)
+          #t
+          (report-stack-is-empty observer)))))
+
+(define push
+  (lambda (val stack)
+    (lambda (observer)
+      (cond ((eqv? observer 'pop) stack)
+            ((eqv? observer 'top) val)
+            (else #f))))) ; empty-stack?
+
+(define pop
+  (lambda (stack)
+    (stack 'pop)))
+
+(define top
+  (lambda (stack)
+    (stack 'top)))
+
+(define empty-stack?
+  (lambda (stack)
+    (stack 'empty?)))
+
+(define report-stack-is-empty
+  (lambda (observer)
+    (eopl:error 'empty-stack "Called ~s on an empty stack"
+                observer)))
+
+;; 2.13
+(define empty-env
+  (lambda ()
+    (list (lambda (search-var)                    ; apply-env
+            (report-no-binding-found search-var)) 
+          (lambda ()                              ; empty-env?
+            #t))))
+
+(define extend-env
+  (lambda (saved-var saved-val saved-env)
+    (list (lambda (search-var)                     ; apply-env
+            (if (eqv? search-var saved-var)
+                saved-val
+                (apply-env saved-env search-var))) 
+          (lambda ()                               ; empty-env?
+            #f))))
+
+(define apply-env
+  (lambda (env search-var)
+    ((car env) search-var)))
+
+(define empty-env?
+  (lambda (env)
+    ((cadr env))))
+
+;; 2.14
+(define empty-env
+  (lambda ()
+    (list (lambda (search-var)                    ; apply-env
+            (report-no-binding-found search-var))
+          (lambda ()                              ; empty-env?
+            #t)
+          (lambda (s)                             ; has-binding?
+            #f))))
+
+(define extend-env
+  (lambda (saved-var saved-val saved-env)
+    (list (lambda (search-var)                     ; apply-env
+            (if (eqv? search-var saved-var)
+                saved-val
+                (apply-env saved-env search-var)))
+          (lambda ()                               ; empty-env?
+            #f)
+          (lambda (s)                              ; has-binding?
+            (if (eqv? s saved-var)
+                #t
+                (has-binding? saved-env s))))))
+
+(define has-binding?
+  (lambda (env s)
+    ((caddr env) s)))
