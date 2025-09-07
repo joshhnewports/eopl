@@ -91,9 +91,9 @@
           (list-val (value-of exp1 env)
                     (value-of exp2 env)))
 (car-exp (exp1)
-         (car (expval->list exp1)))
+         (car (expval->list (value-of exp1 env))))
 (cdr-exp (exp1)
-         (cdr (expval->list exp1)))
+         (cdr (expval->list (value-of exp1 env))))
 (null?-exp (exp1)
            (let ((val1 (value-of exp1 env)))
              (cases expval val1
