@@ -1,0 +1,419 @@
+\documentclass[11pt]{article}
+\usepackage[paperwidth=8in, paperheight=9.5in, left=2in, right=1in, top=1in]{geometry}
+\usepackage{forest}
+\usepackage{mathpartir} % inference rules
+\usepackage{amssymb, amsmath, amsthm}
+\usepackage{pxfonts}    % font
+\usepackage{newpxmath}   % math font NOW CHANGED
+\usepackage{courier}    % typewriter
+\usepackage{setspace}   % precise spacing                                                   
+\setstretch{1.2}
+
+\usepackage{listings}
+\lstset{basicstyle=\ttfamily}
+
+\forestset{prod/.style={draw, inner sep=2pt, minimum width=3cm,minimum height=.5cm}}
+
+\newenvironment{definition}[1] {
+  \noindent {\bf Definition (#1)} \itshape} {
+  \medskip}
+
+\newcommand{\cons}[2]{\text{\tt{(}}{#1}\ \text{\tt{.}}\ {#2}\text{\tt{)}}}
+
+\newcommand{\expr}[1]{\text{\tt{#1}}} % language expression
+\newcommand{\tml}[1]{\text{\tt{#1}}} % language expression
+
+\newcommand{\numval}[1]{\lceil #1 \rceil}
+
+\newcommand{\expvaltonum}[1]{\lfloor #1 \rfloor}
+
+\begin{document}
+\noindent Exercise 4.14
+\begin{mathpar}
+  \inferrule {\tml{(value-of}\quad exp_1\quad \rho\quad \sigma_0 \tml{)} = \tml{(} val_1,\ \sigma_1\tml{)} \\ l\notin dom(\sigma_1)}
+             {\tml{(value-of (let-exp}\quad var\quad exp_1\quad body\tml{)}\quad \rho\quad \sigma_0\tml{)} \\\\ = \tml{(value-of}\quad body\quad [var=l]\rho\quad [l=val_1]\sigma_1\tml{)}}
+\end{mathpar}\medskip
+
+\noindent Exercise 4.15
+
+Variables in the environment are bound to references which are plain integers.\medskip
+
+\noindent Exercise 4.16
+
+Assume the initial environment p is empty.
+
+\begin{lstlisting}
+  (value-of <let times 4 = 0 in begin set..> p)
+  store = ()
+  
+  (value-of <begin set..> [times4=0]p)
+  store = ((0 (num-val 0)))
+
+  (value-of <(times4 3)> [times4=0]p)
+  store = ((0 (proc-val (<proc (x)..> [times4=0]p))))
+
+  (apply-procedure (proc-val <proc (x)..>) (num-val 3))
+  store = ((0 (proc-val (<proc (x)..> [times4=0]p)))
+           (1 (num-val 3)))
+
+  (value-of <if zero(x)..> [x=1][times4=0]p)
+  store = ((0 (proc-val (<proc (x)..> [times4=0]p)))
+           (1 (num-val 3)))
+
+  (value-of <-((times4 -(x,1)), -4)> [x=1][times4=0]p)
+  store = ((0 (proc-val (<proc (x)..> [times4=0]p)))
+           (1 (num-val 3)))
+
+  (apply-procedure (proc-val <proc (x)..>) (num-val 2))
+  store = ((0 (proc-val (<proc (x)..> [times4=0]p))))
+           (1 (num-val 3)))
+
+  (value-of <if zero(x)..> [x=2][times4=0]p)
+  store = ((0 (proc-val (<proc (x)..> [times4=0]p)))
+           (1 (num-val 3))
+           (2 (num-val 2)))
+
+  (value-of <-((times4 (-x,1)), -4)>> [x=2][times4=0]p)
+  store = ((0 (proc-val (<proc (x)..> [times4=0]p)))
+           (1 (num-val 3))
+           (2 (num-val 2)))
+
+  (apply-procedure (proc-val <proc (x)..>) (num-val 1))
+  store = ((0 (proc-val (<proc (x)..> [times4=0]p)))
+           (1 (num-val 3))
+           (2 (num-val 2)))
+
+  (value-of <if zero(x)..> [x=3][times4=0]p)
+  store = ((0 (proc-val (<proc (x)..> [times4=0]p)))
+           (1 (num-val 3))
+           (2 (num-val 2))
+           (3 (num-val 1)))
+
+  (value-of <-((times4 -(x,1)), -4)> [x=3][times4=0]p)
+  store = ((0 (proc-val (<proc (x)..> [times4=0]p)))
+           (1 (num-val 3))
+           (2 (num-val 2))
+           (3 (num-val 1)))
+
+  (apply-procedure (proc-val <proc (x)..>) (num-val 0))
+  store = ((0 (proc-val (<proc (x)..> [times4=0]p)))
+           (1 (num-val 3))
+           (2 (num-val 2))
+           (3 (num-val 1)))
+
+  (value-of <if zero(x)..> [x=4][times4=0]p)
+  store = ((0 (proc-val (<proc (x)..> [times4=0]p)))
+           (1 (num-val 3))
+           (2 (num-val 2))
+           (3 (num-val 1))
+           (4 (num-val 0)))
+
+  -(-(-(0,-4),-4),-4)
+
+  -(-(4,-4),-4)
+
+  -(8,-4)
+
+  12
+\end{lstlisting}\medskip
+
+\noindent Exercise 4.17
+\begin{mathpar}
+  \inferrule {\tml{(value-of}\quad exp_1\quad \rho\quad \sigma_0\tml{)} = \tml{(}val_1,\ \sigma_1\tml{)} \\\\
+    \vdots\\\\
+    \tml{(value-of}\quad exp_n\quad \rho\quad \sigma_{n-1}\tml{)} = \tml{(}val_n,\ \sigma_n\tml{)}\\\\
+    l_1,\ \ldots,\ l_n \notin dom(\sigma_n)}
+             {\tml{(value-of (let-exp}\quad var_1\ \ldots\ var_n\quad exp_1\ \ldots\ exp_n\quad body\tml{)}\quad \rho\quad \sigma_0\tml{)}\\\\
+               = \tml{(value-of}\quad body\quad [var_1 = l_1]\ldots[var_n = l_n]\rho\quad [l=val_1]\ldots[l_n = val_n]\sigma_n\tml{)}}
+\end{mathpar}\medskip
+
+\begin{mathpar}
+  \inferrule {\tml{(value-of}\quad exp_1\quad \rho\quad \sigma_0\tml{)} = \tml{(}val_1,\ \sigma_1\tml{)}\\\\
+    \tml{(value-of}\quad exp_2\quad \rho\quad \sigma_1\tml{)} = \tml{(}val_2,\quad \sigma_2\tml{)}\\\\
+    \vdots\\\\
+    \tml{(value-of}\quad exp_n\quad \rho\quad \sigma_{n-1}\tml{)} = \tml{(}val_n,\ \sigma_n\tml{)}}
+             {\tml{(value-of (call-exp}\quad exp_1\quad exp_2\ \ldots\ exp_n\tml{)}\quad \rho\quad \sigma_0\tml{)}\\\\
+               = \tml{(apply-procedure (expval->proc}\quad val_1\tml{)}\quad val_2\ \ldots\ val_n\quad \sigma_n\tml{)}}
+\end{mathpar}\medskip
+
+\begin{align*}
+  &\tml{(apply-procedure (procedure}\quad var_1\ \ldots\ var_n\quad body\quad \rho\tml{)}\quad val_1\ \ldots\ val_n\quad \sigma\tml{)}\\
+  &=\tml{(value-of}\quad body\quad [var_l=l_1]\ldots[var_n=l_n]\rho\quad [l_1=val_1]\ldots[l_n=val_n]\sigma\tml{)}
+\end{align*}
+where $l_1,\ldots,l_n \notin dom(\sigma)$.
+
+\begin{lstlisting}
+;; the-grammar
+(expression
+ ("let" (arbno identifier "=" expression) "in" expression)
+ let-exp)   
+
+(expression
+ ("proc" "(" (arbno identifier) ")" expression)
+ proc-exp)
+
+(expression
+ ("(" expression (arbno expression) ")")
+ call-exp)
+  
+;; value-of
+(let-exp (vars exps body)       
+         (let ((vals (map (lambda (exp)
+                            (value-of exp env))
+                          exps)))
+           (value-of body
+                     (extend-env* vars
+                                  (map newref vals)
+                                  env))))
+(proc-exp (vars body)
+          (proc-val (procedure vars body env)))
+(call-exp (rator rands)
+          (let ((proc (expval->proc (value-of rator env)))
+                (args (map (lambda (rand)
+                             (value-of rand env))
+                           rands)))
+            (apply-procedure proc args)))
+
+;; apply-procedure : Proc * Listof(ExpVal) -> ExpVal
+(define apply-procedure
+  (lambda (proc1 vals)
+    (cases proc proc1
+      (procedure (vars body saved-env)
+                 (value-of
+                  body
+                  (extend-env* vars
+                               (map newref vals)
+                               saved-env))))))
+
+(define-datatype proc proc?
+  (procedure
+   (bvar (list-of symbol?))
+   (body expression?)
+   (env environment?)))
+                               
+;; environment datatype
+(extend-env*
+ (bvars (list-of symbol?))
+ (bvals (list-of reference?))
+ (saved-env environment?))
+
+;; apply-env
+(extend-env* (bvars bvals saved-env)
+             (let ((n (location search-var bvars)))
+               (if n
+                   (list-ref bvals n)
+                   (apply-env saved-env search-var))))
+\end{lstlisting}\medskip
+
+\noindent Exercise 4.18
+\begin{lstlisting}
+;; the-grammar
+(expression
+ ("letrec"
+  (arbno identifier "(" identifier ")" "=" expression)
+  "in" expression)
+ letrec-exp)
+  
+;; value-of
+(letrec-exp (p-names b-vars p-bodies letrec-body)
+            (value-of letrec-body
+                      (extend-env-rec* p-names
+                                       b-vars
+                                       p-bodies
+                                       env)))
+
+;; apply-procedure : Proc * ExpVal -> ExpVal
+(define apply-procedure
+  (lambda (proc1 val)
+    (cases proc proc1
+      (procedure (var body saved-env)
+                 (value-of body
+                           (extend-env var
+                                       (newref val)
+                                       saved-env))))))
+
+;; environment datatype
+(extend-env-rec*
+ (p-names (list-of symbol?))
+ (b-vars (list-of symbol?))
+ (p-bodies (list-of expression?))
+ (saved-env environment?))
+
+;; apply-env
+(extend-env-rec* (p-names b-vars p-bodies saved-env)
+                 (let ((n (location search-var p-names)))
+                   (if n
+                       (newref
+                        (proc-val
+                         (procedure
+                          (list-ref b-vars n)
+                          (list-ref p-bodies n)
+                          env)))
+                       (apply-env saved-env search-var))))
+\end{lstlisting}\medskip
+
+\noindent Exercise 4.19
+\begin{lstlisting}
+(define-datatype environment environment?
+  (empty-env)
+  (extend-env 
+   (bvar symbol?)
+   (bval reference?)
+   (saved-env environment?))
+  (extend-env-multiproc-rec
+   (p-names (list-of symbol?))
+   (reference-vector vector?)
+   (saved-env environment?)))
+
+;; extend-env-rec* :
+;; Listof(Var) * Listof(Var) * Listof(Exp) * Env -> Env
+(define extend-env-rec*
+  (lambda (p-names b-vars p-bodies saved-env)
+    (let* ((len (length p-names))
+           (reference-vector (make-vector len))
+           (new-env (extend-env-multiproc-rec
+                     p-names reference-vector saved-env)))
+      (for-each (lambda (index b-var body)
+                  (vector-set! reference-vector
+                               index
+                               (newref
+                                (proc-val
+                                 (procedure
+                                  b-var
+                                  body
+                                  new-env)))))
+                (enumerate-interval 0 (- len 1))
+                b-vars
+                p-bodies)
+      new-env)))
+
+;; modify the given pretty-printing procedure
+;; env->list : Env -> List
+(define env->list
+  (lambda (env)
+    (cases environment env
+      (empty-env () '())
+      (extend-env (sym val saved-env)
+                  (cons
+                   (list sym val)
+                   (env->list saved-env)))
+      (extend-env-multiproc-rec (p-names vec saved-env)
+                                (cons
+                                 (list 'letrec p-names '...)
+                                 (env->list saved-env))))))  
+\end{lstlisting}\medskip
+
+\noindent Exercise 4.20
+
+We choose to not make a new environment constructor, but modify {\tt extend-env} (to allow every instance of {\tt extend-env} in the program to not be rewritten if needed) such that it can contain either references to expressed values or just expressed values. We wrap these types within the denoted values data type.
+
+{\tt apply-env} returns denoted values. Either ExpVals or references are wrapped as DenVals. Recursive procedures are implicitly mutable since they were not constructed by {\tt let}, hence {\tt extend-env-rec*} returns a wrapped reference. Bound variables are implicitly mutable as well since we do not modify the environment constructor in {\tt apply-procedure}.
+
+There are two places in {\tt value-of} that depend on {\tt apply-env}.
+\begin{enumerate}
+\item {\tt var-exp} calls {\tt apply-env} which returns a denoted value. If the denoted value constructor was wrapped around an ExpVal, then that ExpVal is returned. If a reference was wrapped, then the reference is dereferenced. In both cases, an ExpVal is returned.
+
+\item {\tt assign-exp} calls {\tt apply-env} to determine whether the variable represents an ExpVal or a reference. If an ExpVal then the variable is immutable. If a reference then the variable is assigned to the new value.
+\end{enumerate}
+
+Both {\tt var-exp} and {\tt assign-exp} could determine the type of the value returned from {\tt apply-env} had we not used the DenVal data type. But we use {\tt cases} because it is nice.
+
+\begin{lstlisting}
+;; the-grammar
+(expression
+ ("letmutable" identifier "=" expression "in" expression)
+ letmutable-exp)
+  
+;; value-of
+(var-exp (var)
+         (cases denval (apply-env env var)
+           (denoted-expval (expval) expval)
+           (denoted-ref-to-expval (ref) (deref ref))))
+(let-exp (var exp1 body)       
+         (let ((v1 (value-of exp1 env)))
+           (value-of
+            body
+            (extend-env var v1 env))))
+(letmutable-exp (var exp1 body)
+                (let ((v1 (value-of exp1 env)))
+                  (value-of
+                   body
+                   (extend-env var (newref v1) env))))
+(assign-exp (var exp1)
+            (cases denval (apply-env env var)
+              (denoted-expval (expval)
+                              (eopl:error
+                               'value-of
+                               "cannot assign to immutable var ~s"
+                               var))
+              (denoted-ref-to-expval (ref)
+                                     (begin
+                                       (setref!
+                                        ref
+                                        (value-of exp1 env))
+                                       (num-val 27)))))
+
+(define-datatype denval denval?
+  (denoted-expval
+   (val expval?))
+  (denoted-ref-to-expval
+   (ref reference?)))
+
+(define-datatype environment environment?
+  (empty-env)
+  (extend-env 
+   (bvar symbol?)
+   (binding-val (lambda (x) (or expval? reference?)))
+   (saved-env environment?))
+  (extend-env-rec*
+   (proc-names (list-of symbol?))
+   (b-vars (list-of symbol?))
+   (proc-bodies (list-of expression?))
+   (saved-env environment?)))
+
+;; apply-env : Env * Sym -> DenVal
+(define apply-env
+  (lambda (env search-var)
+    (cases environment env
+      (empty-env ()
+                 (eopl:error 'apply-env
+                             "No binding for ~s"
+                             search-var))
+      (extend-env (bvar bval saved-env)
+                  (if (eqv? search-var bvar)
+                      (if (expval? bval)
+                          (denoted-expval bval)
+                          (denoted-ref-to-expval bval))
+                      (apply-env saved-env search-var)))
+      (extend-env-rec* (p-names b-vars p-bodies saved-env)
+                       (let ((n (location search-var p-names)))
+                         ;; n : (maybe int)
+                         (if n
+                             (denoted-ref-to-expval
+                              (newref
+                               (proc-val
+                                (procedure 
+                                 (list-ref b-vars n)
+                                 (list-ref p-bodies n)
+                                 env))))
+                             (apply-env saved-env search-var)))))))
+\end{lstlisting}\medskip
+
+\noindent Exercise 4.21
+
+\begin{lstlisting}
+;; the-grammar
+(expression
+ ("setdynamic" identifier "=" expression "during" expression)
+ setdynamic-exp)
+  
+;; value-of
+(setdynamic-exp (var exp1 body)
+                (let ((ref (apply-env env var)))
+                  (let ((original-val (deref ref)))
+                    (setref! ref (value-of exp1 env))
+                    (let ((value-of-body (value-of body env)))
+                      (setref! ref original-val)
+                      value-of-body))))
+\end{lstlisting}
+\end{document}
